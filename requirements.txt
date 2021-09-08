@@ -1,2 +1,9 @@
 opencv-python
+jupyter
+ipykernel
+matplotlib
 numpy
+pillow
+tensorflow
+tensorflow_datasets
+
