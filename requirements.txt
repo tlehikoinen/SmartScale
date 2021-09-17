@@ -4,6 +4,7 @@ ipykernel
 matplotlib
 numpy
 pillow
-tensorflow
+tensorflow <= 2.5
 tensorflow_datasets
-
+pyyaml
+h5py

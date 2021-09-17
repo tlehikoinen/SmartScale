@@ -8,10 +8,10 @@ import numpy as np
 
 try:
     if sys.argv[1] == "test":
-        IMAGES_PATH = os.path.join(os.getcwd(), 'images', 'testhandsigns')
+        IMAGES_PATH = os.path.join(os.getcwd(),'..', 'images', 'testhandsigns')
         print("TAKING PICTURES TO TESTFOLDER")
 except:
-    IMAGES_PATH = os.path.join(os.getcwd(), 'images', 'handsigns')
+    IMAGES_PATH = os.path.join(os.getcwd(), '..', 'images', 'handsigns')
     print("TAKING PICTURES TO REGULAR FOLDER")
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 #IMAGES_PATH = os.path.join(os.getcwd(), 'images', 'testhandsigns')

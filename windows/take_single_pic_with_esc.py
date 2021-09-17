@@ -34,7 +34,7 @@ def crop_square(img, size=picture_size, interpolation=cv2.INTER_AREA):
     return resized
 
 picture_name = sys.argv[1]
-IMAGES_PATH = os.path.join(os.getcwd(), 'images', 'testimages')
+IMAGES_PATH = os.path.join(os.getcwd(),'..', 'images', 'testimages')
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 if not os.path.exists(IMAGES_PATH):
     os.makedirs(IMAGES_PATH)
