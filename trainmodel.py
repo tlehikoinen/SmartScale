@@ -3,7 +3,6 @@
 
 # In[1]:
 
-
 import numpy as np
 import os
 import PIL
@@ -11,6 +10,11 @@ import PIL.Image
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from keras.preprocessing import image
+from keras.models import save_model
+import pickle
+
+if os.path.exists("classnames.txt"):
+    os.remove("classnames.txt")
 
 batch_size = 10
 img_height = 128
@@ -59,7 +63,9 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
 class_names = train_ds.class_names
 print(class_names)
 print(len(class_names))
-
+f = open("classnames.txt", "wb")
+f.write(pickle.dumps(class_names))
+f.close()
 
 # In[6]:
 
@@ -147,6 +153,8 @@ model.evaluate(val_ds)
 
 # In[13]:
 
+tf.keras.models.save_model(
+  model, 'saved_model/mymodel')
 
 probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
 individual_pics_test_path = os.path.join(os.getcwd(), 'images', 'testimages')

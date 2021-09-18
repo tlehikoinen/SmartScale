@@ -21,7 +21,7 @@ def display_picture():
             break
 
 #    cap.release()
-    cv2.destroyAllWindows()
+#    cv2.destroyAllWindows()
 
 def crop_square(img, size=picture_size, interpolation=cv2.INTER_AREA):
     h, w = img.shape[:2]
@@ -32,6 +32,8 @@ def crop_square(img, size=picture_size, interpolation=cv2.INTER_AREA):
     resized = cv2.resize(crop_img, (size, size), interpolation=interpolation)
 
     return resized
+
+
 
 picture_name = sys.argv[1]
 IMAGES_PATH = os.path.join(os.getcwd(),'..', 'images', 'testimages')

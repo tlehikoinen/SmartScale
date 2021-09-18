@@ -73,7 +73,7 @@ def display_picture():
             break
 
 #    cap.release()
-    cv2.destroyAllWindows()
+#    cv2.destroyAllWindows()
 
 def crop_square(img, size=picture_size, interpolation=cv2.INTER_AREA):
     h, w = img.shape[:2]
