@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# # Train and save a model
+
 # In[1]:
+
 
 import numpy as np
 import os
@@ -9,12 +12,15 @@ import PIL
 import PIL.Image
 import tensorflow as tf
 import tensorflow_datasets as tfds
+import pickle
 from keras.preprocessing import image
 from keras.models import save_model
-import pickle
 
-if os.path.exists("classnames.txt"):
-    os.remove("classnames.txt")
+
+# ### Configuration
+
+# In[2]:
+
 
 batch_size = 10
 img_height = 128
@@ -24,7 +30,10 @@ testdata_dir = os.path.join(os.getcwd(), 'images', 'testimages')
 class_names = None
 
 
-# In[2]:
+# 
+# ### Images for training the model
+
+# In[3]:
 
 
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
@@ -36,7 +45,9 @@ train_ds = tf.keras.preprocessing.image_dataset_from_directory(
   batch_size=batch_size)
 
 
-# In[3]:
+# ### Images for validating the model
+
+# In[4]:
 
 
 val_ds = tf.keras.preprocessing.image_dataset_from_directory(
@@ -48,7 +59,9 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
   batch_size=batch_size)
 
 
-# In[4]:
+# ### Images for testing the model
+
+# In[5]:
 
 
 #test_ds = tf.keras.preprocessing.image_dataset_from_directory(
@@ -57,7 +70,9 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
   #batch_size=batch_size)
 
 
-# In[5]:
+# ### Save classnames to text file using pickle dump
+
+# In[6]:
 
 
 class_names = train_ds.class_names
@@ -67,7 +82,19 @@ f = open("classnames.txt", "wb")
 f.write(pickle.dumps(class_names))
 f.close()
 
-# In[6]:
+
+# ### Read saved class names by using pickle
+
+# In[7]:
+
+
+classnames = pickle.loads(open('classnames.txt', "rb").read())
+print(classnames)
+
+
+# ### Display pictures from trained dataset
+
+# In[8]:
 
 
 import matplotlib.pyplot as plt
@@ -81,7 +108,9 @@ for images, labels in train_ds.take(1):
     plt.axis("off")
 
 
-# In[7]:
+# ### Print info about tensors shape
+
+# In[9]:
 
 
 for image_batch, labels_batch in train_ds:
@@ -90,14 +119,12 @@ for image_batch, labels_batch in train_ds:
   break
 
 
-# In[8]:
+# ### Standardize the data
+
+# In[10]:
 
 
 normalization_layer = tf.keras.layers.experimental.preprocessing.Rescaling(1./255)
-
-
-# In[9]:
-
 
 normalized_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))
 image_batch, labels_batch = next(iter(normalized_ds))
@@ -106,7 +133,9 @@ first_image = image_batch[0]
 print(np.min(first_image), np.max(first_image))
 
 
-# In[10]:
+# ### Configure the dataset for performance
+
+# In[11]:
 
 
 AUTOTUNE = tf.data.AUTOTUNE
@@ -115,7 +144,9 @@ train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 
-# In[11]:
+# ### Train the model
+
+# In[12]:
 
 
 num_classes = len(class_names)
@@ -145,27 +176,39 @@ model.fit(
 )
 
 
-# In[12]:
-
-
-model.evaluate(val_ds)
-
+# ### Test model accuracy with test pictures
 
 # In[13]:
 
-tf.keras.models.save_model(
-  model, 'saved_model/mymodel')
+
+#model.evaluate(test_ds)
+
+
+# In[14]:
+
+
+### Visualize the testing for images in 'testimages' folder
+
+
+# In[17]:
+
 
 probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
 individual_pics_test_path = os.path.join(os.getcwd(), 'images', 'testimages')
 pic_list = os.listdir(individual_pics_test_path)
-for picture in pic_list:
+
+plt.figure(figsize=(10, 10))
+
+for count, picture in enumerate(pic_list):
+    ax = plt.subplot(3, 3, count + 1)
     test_image_path = os.path.join(individual_pics_test_path, picture)
     test_image = image.load_img(test_image_path, (img_height,img_width))
     test_image = image.img_to_array(test_image)
+    plt.imshow(test_image.astype("uint8"))
     test_image = np.expand_dims(test_image,axis=0)
     result = probability_model.predict(test_image)
     class_names[np.argmax(result)]
+    plt.title(class_names[np.argmax(result)] + " " + str(round((np.amax(result)*100), 2)) + "%" )
     print(class_names[np.argmax(result)] + " " + str(round((np.amax(result)*100), 2)) + " % ---- " + picture)
     #training_set.class_indices
 
@@ -173,16 +216,13 @@ for picture in pic_list:
 
 # ### 
 
-# In[ ]:
+# ### Save model
+
+# In[16]:
 
 
-
-
-
-# In[ ]:
-
-
-
+tf.keras.models.save_model(
+  model, 'saved_model/mymodel')
 
 
 # In[ ]:

@@ -10,7 +10,6 @@ import tensorflow as tf
 from keras.preprocessing import image
 from tensorflow import keras
 
-
 new_model = tf.keras.models.load_model('../saved_model/mymodel')
 probability_model = tf.keras.Sequential([new_model, tf.keras.layers.Softmax()])
 class_names = pickle.loads(open('../classnames.txt', "rb").read())
@@ -42,12 +41,14 @@ def predict_picture():
     test_image = image.load_img(test_image_path, (128, 128))
     test_image = image.img_to_array(test_image)
     test_image = np.expand_dims(test_image,axis=0)
-    result = probability_model.predict(test_image)
-    class_number = np.argmax(result)
-    class_probability = str(round((np.amax(result)*100), 2))
-    print('ORIGINAL RESULT ' + str(result))
-    print('CLASS NUMBER ' + str(class_names[class_number]))
-    print('PROBABILITY = ' + str(class_probability))
+    results = probability_model.predict(test_image)
+    class_number = np.argmax(results)
+    class_probability = str(round((np.amax(results)*100), 2))
+    print('GUESSES ' + str(class_names[class_number]) + ' PROBABILITY = ' + str(class_probability) + '%')
+    flattened_result = np.array(results)
+    flattened_result = flattened_result.flatten()
+    for count, result in enumerate(flattened_result):
+        print('Object name = ' + class_names[count] + ' Probability = ' + str(round((result*100), 2)))
     time.sleep(1)
 
 def display_picture():
