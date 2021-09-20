@@ -4,5 +4,5 @@ ipykernel
 matplotlib
 numpy
 pillow
-tensorflow <= 2.5
+tensorflow == 2.6
 tensorflow_datasets

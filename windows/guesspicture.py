@@ -13,7 +13,7 @@ from tensorflow import keras
 new_model = tf.keras.models.load_model('../saved_model/mymodel')
 probability_model = tf.keras.Sequential([new_model, tf.keras.layers.Softmax()])
 class_names = pickle.loads(open('../classnames.txt', "rb").read())
-
+print(class_names)
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 test_image_path = os.path.join(os.getcwd(), '..', 'images', 'testimages', 'test.jpg')
 picture_size = 128
@@ -53,6 +53,7 @@ def predict_picture():
 
 def display_picture():
     # Displays videoimage until ESC is pressed on keyboard (command prompt as active window)
+    print('Press ESC to take picture')
     while(cap.isOpened()):
         ret, frame = cap.read()
         if ret == True:
