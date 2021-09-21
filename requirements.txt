@@ -3,6 +3,7 @@ jupyter
 ipykernel
 matplotlib
 numpy
+pandas
 pillow
 tensorflow == 2.6
 tensorflow_datasets

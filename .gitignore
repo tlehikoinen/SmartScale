@@ -2,3 +2,5 @@ images
 objdetect
 .ipynb_checkpoints
 pictureaddresses.csv
+pricelist.csv
+__pycache__/
