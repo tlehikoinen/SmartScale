@@ -1,6 +1,8 @@
 import os
 import csv
 import cv2
+import uuid
+import time
 import numpy as np
 import pandas as pd
 import pickle
@@ -101,7 +103,7 @@ class PriceHandler:
                 return
             else:
                 print("Wrong input")
-            input('Press any key to continue')
+            input('Press enter key to continue')
 
 
 
@@ -110,6 +112,7 @@ class PictureTaker:
     # Crops the image and resizes to 128 and then saves to path given in constructor
     # Path is same for all so overwriting is inevitable, unless uuid() or so is added
 
+    # Add imagefolder_path and ?
     def __init__(self, picture_path, cv2_cam=0, picture_size=128):
         self.picture_path = picture_path
         self.picture_size = picture_size
@@ -126,15 +129,7 @@ class PictureTaker:
         cv2.imwrite(self.picture_path, frame)
         self.cap.release() 
 
-    def takePictureWithClass(self, classname, amount): 
-        picture_path = os.path.join(self.picture_path, classname) 
-        for i in range(amount): 
-            self.takePicture() 
-            #self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
-            #ret, frame = self.cap.read() 
-            #frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
-            #cv2.imwrite(self.picture_path, frame) self.cap.release() 
-    def displayPicture(self): 
+    def displayPicture(self, destroy=True): 
         # Displays videoimega until ESC is pressed 
         print("\nDisplaying camera, press ESC on cmd to close")
         self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
@@ -149,9 +144,9 @@ class PictureTaker:
             else: 
                 break 
         self.cap.release()
-        cv2.destroyAllWindows()
+        if destroy == True:
+            cv2.destroyAllWindows()
 
-# interpolation=cv2.INTER_AREA)
     def crop_square(self, img, size, interpolation):
         h, w = img.shape[:2]
         min_size = np.amin([h,w])
@@ -161,6 +156,68 @@ class PictureTaker:
         resized = cv2.resize(crop_img, (size, size), interpolation=interpolation)
 
         return resized
+
+class PictureTakerWithClass(PictureTaker):
+    # Before model is trained we must be able to take pictures to a folder named after a classname
+    # This is a child class that inherits PictureTaker, and both are constructed with folder path
+    # Before taking picture, parent classes picture_path is changed by address randomiser which ...
+    # combines imagefolder_path and random address with .jpg extension
+   
+    def __init__(self, imagefolder_path):
+        PictureTaker.__init__(self,imagefolder_path)
+        self.imagefolder_root_path = imagefolder_path
+        self.imagefolder_class_path = imagefolder_path 
+        if not os.path.exists(imagefolder_path):
+            os.makedirs(imagefolder_root_path)
+
+    def randomisePictureDestinationAddress(self):
+        image_path = os.path.join(self.imagefolder_class_path, str(uuid.uuid1()) + '.jpg')
+        self.picture_path = image_path
+
+    def printPaths(self):
+        print("Imagefolder root path: " + self.imagefolder_root_path)
+        print("Imagefolder class path: " + self.imagefolder_class_path)
+
+    def takePictureRandomAddress(self):
+        self.randomisePictureDestinationAddress()
+        self.takePicture()
+    
+    def takePicturesWithClass(self, classname, amount):
+        self.imagefolder_class_path = os.path.join(self.imagefolder_root_path, classname)
+        if not os.path.exists(self.imagefolder_class_path):
+            os.makedirs(self.imagefolder_class_path)
+        print('\nTaking pictures for class: ' + classname + '\nFolder: ' + self.imagefolder_class_path)
+        for i in range(int(amount)):
+            self.displayPicture(False)
+            print("taking picture number " + str(i+1))
+            self.takePictureRandomAddress()
+            if i == int(amount) - 1:
+                cv2.destroyAllWindows()
+    
+    def movePictures():
+        # Maybe images need to be moved
+        pass
+    def printinfo():
+        # Print info like classnames, file counts, are folders missing pictures etc..
+        pass
+
+    def menu(self):
+        continueProgram = True
+
+        while(continueProgram):
+            selection = input("\nPICTURE CLASS MENU\n1. Take pictures with class \n2. Get current paths\n3. Go back to main menu")
+            if selection == '1':
+                classname = input("For which class you want to take pictures? ")
+                amount = input("How many pictures you want to take? ")
+                self.takePicturesWithClass(classname, amount)
+            elif selection == '2':
+                self.printPaths()
+            elif selection == '3':
+                continueProgram = False
+                return
+            else:
+                print("Wrong input")
+            input('Press enter key to continue')
 
 
 class PicturePredicter:
