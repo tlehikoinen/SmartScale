@@ -79,7 +79,7 @@ class PriceHandler:
         continueProgram = True
 
         while(continueProgram):
-            selection = input("\nWhat you want to do?\n1. View items and prices \n2. Set prices for every item\n3. Change item price\n4. Get item price\n5. Reset (initialize)\n6. Quit\n")
+            selection = input("\nPRICE MENU\n1. View items and prices \n2. Set prices for every item\n3. Change item price\n4. Get item price\n5. Reset (initialize)\n6. Go back to main menu")
             if selection == '1':
                 self.printPrices()
             elif selection == '2':
@@ -96,7 +96,9 @@ class PriceHandler:
             elif selection == '5':
                 self.initialisePriceList()
             elif selection == '6':
+                # Returning so user is not asked to press key to continue
                 continueProgram = False
+                return
             else:
                 print("Wrong input")
             input('Press any key to continue')
@@ -117,28 +119,37 @@ class PictureTaker:
         #self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 280)
 
     def takePicture(self):
-        self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW)
-        ret, frame = self.cap.read()
-        frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA)
+        print(self.picture_path)
+        self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
+        ret, frame = self.cap.read() 
+        frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
         cv2.imwrite(self.picture_path, frame)
-        self.cap.release()
+        self.cap.release() 
 
-    def displayPicture(self):
-        # Displays videoimega until ESC is pressed
-        while(self.cap.isOpened()):
-            ret, frame = self.cap.read()
-            if ret == True:
-                cv2.imshow('frame', frame)
-                if msvcrt.kbhit():
-                    if ord(msvcrt.getch()) == 27:
-                        break;
-                cv2.waitKey(25)
-            else:
-                break
-
+    def takePictureWithClass(self, classname, amount): 
+        picture_path = os.path.join(self.picture_path, classname) 
+        for i in range(amount): 
+            self.takePicture() 
+            #self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
+            #ret, frame = self.cap.read() 
+            #frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
+            #cv2.imwrite(self.picture_path, frame) self.cap.release() 
+    def displayPicture(self): 
+        # Displays videoimega until ESC is pressed 
+        print("\nDisplaying camera, press ESC on cmd to close")
+        self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
+        while(self.cap.isOpened()): 
+            ret, frame = self.cap.read() 
+            if ret == True: 
+                cv2.imshow('frame', frame) 
+                if msvcrt.kbhit(): 
+                    if ord(msvcrt.getch()) == 27: 
+                        break 
+                cv2.waitKey(25) 
+            else: 
+                break 
         self.cap.release()
         cv2.destroyAllWindows()
-
 
 # interpolation=cv2.INTER_AREA)
     def crop_square(self, img, size, interpolation):
