@@ -13,7 +13,7 @@ from keras.preprocessing import image
 from keras.models import save_model
 
 # ### Configuration
-batch_size = 10
+batch_size = 5
 img_height = 128
 img_width = 128
 data_dir = os.path.join(os.getcwd(), 'images', 'handsigns')
@@ -58,18 +58,6 @@ f.close()
 classnames = pickle.loads(open('classnames.txt', "rb").read())
 print(classnames)
 
-# ### Display pictures from trained dataset
-
-import matplotlib.pyplot as plt
-
-plt.figure(figsize=(10, 10))
-for images, labels in train_ds.take(1):
-  for i in range(9):
-    ax = plt.subplot(3, 3, i + 1)
-    plt.imshow(images[i].numpy().astype("uint8"))
-    plt.title(class_names[labels[i]])
-    plt.axis("off")
-
 # ### Print info about tensors shape
 
 for image_batch, labels_batch in train_ds:
@@ -98,7 +86,7 @@ val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 data_augmentation = tf.keras.Sequential([
   #tf.keras.layers.experimental.preprocessing.RandomRotation(0.2),
   tf.keras.layers.experimental.preprocessing.RandomContrast(factor=[0.2, 0.4]),
-  tf.keras.layers.experimental.preprocessing.RandomFlip(mode="horizontal")
+  tf.keras.layers.experimental.preprocessing.RandomFlip(mode="horizontal_and_vertical")
 ])
 
 # ### Train the model
@@ -127,7 +115,7 @@ model.compile(
 model.fit(
   train_ds,
   validation_data=val_ds,
-  epochs=5
+  epochs=10
 )
 
 
@@ -141,18 +129,13 @@ probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
 individual_pics_test_path = os.path.join(os.getcwd(), 'images', 'testimages')
 pic_list = os.listdir(individual_pics_test_path)
 
-plt.figure(figsize=(10, 10))
-
 for count, picture in enumerate(pic_list):
-    ax = plt.subplot(3, 3, count + 1)
     test_image_path = os.path.join(individual_pics_test_path, picture)
     test_image = image.load_img(test_image_path, (img_height,img_width))
     test_image = image.img_to_array(test_image)
-    plt.imshow(test_image.astype("uint8"))
     test_image = np.expand_dims(test_image,axis=0)
     result = probability_model.predict(test_image)
     class_names[np.argmax(result)]
-    plt.title(class_names[np.argmax(result)] + " " + str(round((np.amax(result)*100), 2)) + "%" )
     print(class_names[np.argmax(result)] + " " + str(round((np.amax(result)*100), 2)) + " % ---- " + picture)
     #training_set.class_indices
 
