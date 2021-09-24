@@ -4,14 +4,21 @@ from smartscale import PicturePredicter, PictureTaker, PictureTakerWithClass, Pr
 def main():
     model_path = os.path.join(os.getcwd(),"saved_model","mymodel")
     classnames_path = os.path.join(os.getcwd(),"classnames.txt")
-    testpicture_path = os.path.join(os.getcwd(),"images", "testimages", "predictpicture.jpg")
+    testpicture_path = os.path.join(os.getcwd(),"images", "predictpicture.jpg")
     images_folder = os.path.join(os.getcwd(), "images", "handsigns")
+    root_image_path = os.path.join(os.getcwd(), "images")
+    testimages_folder = os.path.join(os.getcwd(), "images", "testimages")
     prices_path = os.path.join(os.getcwd(), "pricelist.csv")
 
+    # PTWC ensures image folder to exist ...
+    # ... if not, user is asked to start taking pictures
+    # on refuse program continues to next step...
+    classtaker = PictureTakerWithClass(root_image_path, images_folder, testimages_folder)
+    # If we get this far, PicturePredicter ensures that model exists, if not, exits
     predicter = PicturePredicter(model_path, classnames_path, testpicture_path)
+
     picturetaker = PictureTaker(testpicture_path)
     pricehandler = PriceHandler(prices_path, predicter.getClassnames())
-    classtaker = PictureTakerWithClass(images_folder)
     helpmenu = Menu(['How to take pictures', 'How to predict pictures', 'How to change prices'])
     continueProgram = True
 	

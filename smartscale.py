@@ -186,14 +186,15 @@ class PictureTakerWithClass(PictureTaker):
     # Before taking picture, parent classes picture_path is changed by address randomiser which ...
     # combines imagefolder_path and random address with .jpg extension
    
-    def __init__(self, imagefolder_path):
+    def __init__(self, root_image_path, imagefolder_path, testimagefolder_path):
         PictureTaker.__init__(self,imagefolder_path)
-        self.imagefolder_root_path = imagefolder_path
+        self.imagefolder_root_path = root_image_path
+        self.testimagefolder_path = testimagefolder_path
         self.imagefolder_class_path = imagefolder_path 
         if not os.path.exists(imagefolder_path):
-            os.makedirs(imagefolder_root_path)
+            self.initialisePictures()
 
-    def randomisePictureDestinationAddress(self):
+    def randomisePictureDestinationAddress(self, root_path):
         image_path = os.path.join(self.imagefolder_class_path, str(uuid.uuid1()) + '.jpg')
         self.picture_path = image_path
 
@@ -201,19 +202,55 @@ class PictureTakerWithClass(PictureTaker):
         print("Imagefolder root path: " + self.imagefolder_root_path)
         print("Imagefolder class path: " + self.imagefolder_class_path)
 
-    def takePictureRandomAddress(self):
-        self.randomisePictureDestinationAddress()
+    def takePictureRandomAddress(self, path):
+        self.randomisePictureDestinationAddress(path)
         self.takePicture()
+            
+    def askUserAndTakePicturesWithClass(self):
+        classname = input('For which class you want to take pictures ')
+        amount = input('How many pictures you want to take ')
+        self.takePicturesWithClass(classname, amount)
+
+    def takeTrainingPicture(self):
+        if not os.path.exists(self.testimagefolder_path):
+            os.makedirs(self.testimagefolder_path)
+        self.displayPicture(True)
+        self.takePictureRandomAddress(self.testimagefolder_path)
+
+    def initialisePictures(self):
+        # Training pictures and test pictures are located in separate folders
+        # Training pictures are taken first
+
+        # Makes sure that picture to be predicted has folder to be saved to
+        if not os.path.exists(self.imagefolder_root_path):
+            os.makedirs(self.imagefolder_root_path)
+        print("Path for pictures was not found, if you don't have trained model, you should take pictures")  
+        if input ('Take pictures or continue without? Y/N ') == 'Y':
+            os.makedirs(self.imagefolder_root_path)
+            mode_train = True
+        else:
+            return
+        while(mode_train):
+            self.askUserAndTakePicturesWithClass()
+            if input('Continue taking pictures? Y/N ') != 'Y':
+                mode_train = False
+
+        while(not mode_train):
+            print('Taking training picture')
+            self.takeTrainingPicture()
+            if input('Continue taking training pictures? Y/N ') == 'N':
+                return
+
     
     def takePicturesWithClass(self, classname, amount):
-        self.imagefolder_class_path = os.path.join(self.imagefolder_root_path, classname)
+        self.imagefolder_class_path = os.path.join(self.imagefolder_class_path, classname)
         if not os.path.exists(self.imagefolder_class_path):
             os.makedirs(self.imagefolder_class_path)
         print('\nTaking pictures for class: ' + classname + '\nFolder: ' + self.imagefolder_class_path)
         for i in range(int(amount)):
             self.displayPicture(False)
             print("taking picture number " + str(i+1))
-            self.takePictureRandomAddress()
+            self.takePictureRandomAddress(self.imagefolder_class_path)
             if i == int(amount) - 1:
                 cv2.destroyAllWindows()
     
@@ -256,12 +293,18 @@ class PicturePredicter:
     def __init__(self, model_path, classnames_path, picture_path, picture_size=128):
         self.model_path = model_path 
         self.classnames_path = classnames_path 
-        self.model = tf.keras.models.load_model(self.model_path)
-        self.classnames = pickle.loads(open(classnames_path, "rb").read())
-        self.probability_model = tf.keras.Sequential([self.model, tf.keras.layers.Softmax()])
         self.picture_path = picture_path
         self.picture_size = 128
+        if not os.path.exists(self.model_path):
+            self.modelNotFound()
+        self.classnames = pickle.loads(open(classnames_path, "rb").read())
+        self.model = tf.keras.models.load_model(self.model_path)
+        self.probability_model = tf.keras.Sequential([self.model, tf.keras.layers.Softmax()])
 
+    def modelNotFound(self):
+        input("Trained model not found, exit with enter and train it...")
+        exit()
+         
     def getClassnames(self):
         return self.classnames
 
