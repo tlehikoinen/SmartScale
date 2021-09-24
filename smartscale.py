@@ -226,7 +226,6 @@ class PictureTakerWithClass(PictureTaker):
             os.makedirs(self.imagefolder_root_path)
         print("Path for pictures was not found, if you don't have trained model, you should take pictures")  
         if input ('Take pictures or continue without? Y/N ') == 'Y':
-            os.makedirs(self.imagefolder_root_path)
             mode_train = True
         else:
             return
@@ -236,7 +235,7 @@ class PictureTakerWithClass(PictureTaker):
                 mode_train = False
 
         while(not mode_train):
-            print('Taking training picture')
+            print('Taking training pictures... ')
             self.takeTrainingPicture()
             if input('Continue taking training pictures? Y/N ') == 'N':
                 return
