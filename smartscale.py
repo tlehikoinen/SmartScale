@@ -6,11 +6,12 @@ import time
 import numpy as np
 import pandas as pd
 import pickle
-import msvcrt
+#import msvcrt
+#import select
 import tensorflow as tf
 from keras.preprocessing import image
 from tensorflow import keras
-
+import subprocess
 
 class PriceHandler: 
     # We need prices for our predicted products, so this class can be used for generating csv file...
@@ -23,6 +24,9 @@ class PriceHandler:
 
     def printClassnames(self):
         print(self.classNames)
+
+    def updateClassnames(self, classnames):
+        self.classNames = classnames
 
     # Creates/overrides existing price file with classnames and price set to zero...
     # ... User is asked for confirmation if file exists
@@ -120,10 +124,14 @@ class PictureTaker:
         #self.cap = cv2.VideoCapture(cv2_cam, cv2.CAP_DSHOW)
         #self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         #self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 280)
-
+     
     def takePicture(self):
+        if os.name == 'nt':
+            self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
+        elif os.name == 'unix':
+            self.cap = cv2.VideoCapture(self.cv2_cam)
+           
         print(self.picture_path)
-        self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
         ret, frame = self.cap.read() 
         frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
         cv2.imwrite(self.picture_path, frame)
@@ -137,15 +145,30 @@ class PictureTaker:
             ret, frame = self.cap.read() 
             if ret == True: 
                 cv2.imshow('frame', frame) 
-                if msvcrt.kbhit(): 
-                    if ord(msvcrt.getch()) == 27: 
-                        break 
+                if self.checkForKeyPress() == True:
+                    break 
                 cv2.waitKey(25) 
             else: 
                 break 
+        
         self.cap.release()
         if destroy == True:
             cv2.destroyAllWindows()
+
+    def checkForKeyPress(self):
+        if os.name == 'nt':
+            import msvcrt
+            if msvcrt.kbhit():
+                if ord(msvcrt.getch()) == 27:
+                    return True
+        elif os.name == 'unix':
+            import select
+            i,o,e = select.select([sys.stdin],[],[],0.0001)
+            for s in i:
+                if s == sys.stdin:
+                    input = sys.stdin.readline()
+                    return True
+        return False
 
     def crop_square(self, img, size, interpolation):
         h, w = img.shape[:2]
@@ -205,7 +228,7 @@ class PictureTakerWithClass(PictureTaker):
         continueProgram = True
 
         while(continueProgram):
-            selection = input("\nPICTURE CLASS MENU\n1. Take pictures with class \n2. Get current paths\n3. Go back to main menu")
+            selection = input("\nTRAINING MENU\n1. Take pictures with class \n2. Get current paths\n3. Go back to main menu")
             if selection == '1':
                 classname = input("For which class you want to take pictures? ")
                 amount = input("How many pictures you want to take? ")
@@ -215,6 +238,11 @@ class PictureTakerWithClass(PictureTaker):
             elif selection == '3':
                 continueProgram = False
                 return
+            elif selection == 'train':
+                if input("Retrain model? (requires restart) Y/N") == 'Y':
+                    subprocess.call("trainmodel.py", shell=True)
+                    input("Model was retrained, exit with enter...")
+                    exit()
             else:
                 print("Wrong input")
             input('Press enter key to continue')
@@ -259,4 +287,71 @@ class PicturePredicter:
         flattened_result = flattened_result.flatten()
         for count, result in enumerate(flattened_result):
             print('Object name = ' + self.classnames[count] + ' Probability = ' + str(round((result*100), 2)))
+
+class Numpad:
+    def waitForUserInput(self):
+        return input("Up or down U/D")
+
+class Menu(Numpad):
+    # Protyping menu system for 16*2 lcd screen with keypad
+    # Construct different menus, keep hold of current,
+    # return state, move to next, move to previous etc..
+    # Inherits Numpad which asks for user input 
+    def __init__(self, menuItems):
+        self.menuItems = menuItems
+        self.currentState = State(0, menuItems[0])
+
+    def printMenuItems(self):
+        for item in self.menuItems:
+            print(item)
+    
+    def printCurrentState(self):
+        print("Item: " + self.currentState.item + " index: " + str(self.currentState.index))
+
+    def getCurrentState(self):
+        return self.currentState
+
+    def moveToPreviousState(self):
+        if self.currentState.index == 0:
+            return
+        elif self.currentState.index == len(self.menuItems):
+            self.currentState.index = len(self.menuItems)-1
+            self.currentState.item = self.menuItems[self.currentState.index]
+        else:
+            self.currentState.index = self.currentState.index - 1
+            self.currentState.item = self.menuItems[self.currentState.index]
+
+    def moveToNextState(self):
+        if self.currentState.index == len(self.menuItems) -1:
+            self.currentState.index +=1 
+            self.currentState.item = 'Exit'
+        elif self.currentState.index == len(self.menuItems):
+            return
+        else:
+            self.currentState.index = self.currentState.index + 1
+            self.currentState.item = self.menuItems[self.currentState.index]
+    
+    def moveUpOrDown(self, direction):
+        if direction == 'U':
+            self.moveToNextState()
+        elif direction == 'D':
+            self.moveToPreviousState()
+
+    def display(self):
+        # This will eventually display row on lcd screeen
+        self.printCurrentState()
+        selection = self.waitForUserInput()
+        while (selection != 'E'):
+            self.moveUpOrDown(selection)
+            self.printCurrentState()
+            selection = self.waitForUserInput()
+        print('Leaving menu with index ' + str(self.getCurrentState().index))
+        return self.getCurrentState().index 
+class State:
+    def __init__(self, index, menuItem):
+        self.index = index
+        self.item = menuItem
+
+
+
 

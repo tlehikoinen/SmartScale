@@ -1,5 +1,5 @@
 import os
-from smartscale import PicturePredicter, PictureTaker, PictureTakerWithClass, PriceHandler
+from smartscale import PicturePredicter, PictureTaker, PictureTakerWithClass, PriceHandler, Menu
 
 def main():
     model_path = os.path.join(os.getcwd(),"saved_model","mymodel")
@@ -12,6 +12,7 @@ def main():
     picturetaker = PictureTaker(testpicture_path)
     pricehandler = PriceHandler(prices_path, predicter.getClassnames())
     classtaker = PictureTakerWithClass(images_folder)
+    helpmenu = Menu(['How to take pictures', 'How to predict pictures', 'How to change prices'])
     continueProgram = True
 	
     while(continueProgram):
@@ -26,6 +27,7 @@ def main():
             classtaker.menu()
         elif selection == '4':
             print("Maybe add help (also for submenus)")
+            helpmenu.display()
         elif selection == '5':
             continueProgram = False
             exit()
