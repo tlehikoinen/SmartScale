@@ -5,5 +5,5 @@ matplotlib
 numpy
 pandas
 pillow
-tensorflow == 2.6
+tensorflow == 2.5
 tensorflow_datasets

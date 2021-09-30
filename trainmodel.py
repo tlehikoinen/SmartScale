@@ -141,6 +141,8 @@ for count, picture in enumerate(pic_list):
 
 # ### Save model
 
-tf.keras.models.save_model(
-  model, 'saved_model/mymodel')
+#tf.keras.models.save_model(
+ # model, 'saved_model/mymodel')
+ 
+model.save('saved_model/mymodel')
 

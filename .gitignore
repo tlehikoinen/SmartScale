@@ -6,3 +6,4 @@ pictureaddresses.csv
 classnames.txt
 pricelist.csv
 __pycache__/
+.python-version

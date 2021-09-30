@@ -128,7 +128,7 @@ class PictureTaker:
     def takePicture(self):
         if os.name == 'nt':
             self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
-        elif os.name == 'unix':
+        else:
             self.cap = cv2.VideoCapture(self.cv2_cam)
            
         print(self.picture_path)
@@ -140,13 +140,20 @@ class PictureTaker:
     def displayPicture(self, destroy=True): 
         # Displays videoimega until ESC is pressed 
         print("\nDisplaying camera, press ESC on cmd to close")
-        self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
+        if os.name == "nt":
+            self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
+        else:
+            self.cap = cv2.VideoCapture(self.cv2_cam)
         while(self.cap.isOpened()): 
             ret, frame = self.cap.read() 
             if ret == True: 
                 cv2.imshow('frame', frame) 
-                if self.checkForKeyPress() == True:
-                    break 
+                if self.checkForKeyPress():
+                #if os.name == "nt":
+                #    if self.checkForKeyPress() == True:
+                #            break 
+                #elif self.heardEnter():
+                    break
                 cv2.waitKey(25) 
             else: 
                 break 
@@ -155,13 +162,26 @@ class PictureTaker:
         if destroy == True:
             cv2.destroyAllWindows()
 
+    def heardEnter(self):
+        import select
+        import sys
+        i,o,e = select.select([sys.stdin],[],[],0.0001)
+        for s in i:
+            if s == sys.stdin:
+                input = sys.stdin.readline()
+                return True
+        return False
+
+
+
     def checkForKeyPress(self):
         if os.name == 'nt':
             import msvcrt
             if msvcrt.kbhit():
                 if ord(msvcrt.getch()) == 27:
                     return True
-        elif os.name == 'unix':
+        else:
+            import sys
             import select
             i,o,e = select.select([sys.stdin],[],[],0.0001)
             for s in i:
