@@ -6,12 +6,11 @@ import time
 import numpy as np
 import pandas as pd
 import pickle
-#import msvcrt
-#import select
 import tensorflow as tf
 from keras.preprocessing import image
 from tensorflow import keras
 import subprocess
+from time import sleep
 
 class PriceHandler: 
     # We need prices for our predicted products, so this class can be used for generating csv file...
@@ -21,13 +20,17 @@ class PriceHandler:
         self.path = path
         self.header = header
         self.classNames = classnames
-
+        self.checkForPriceList()
     def printClassnames(self):
         print(self.classNames)
 
     def updateClassnames(self, classnames):
         self.classNames = classnames
 
+    def checkForPriceList(self):
+        if not os.path.exists(self.path):
+            self.initialisePriceList()
+        
     # Creates/overrides existing price file with classnames and price set to zero...
     # ... User is asked for confirmation if file exists
     def initialisePriceList(self):
@@ -210,17 +213,21 @@ class PictureTakerWithClass(PictureTaker):
         PictureTaker.__init__(self,imagefolder_path)
         self.imagefolder_root_path = root_image_path
         self.testimagefolder_path = testimagefolder_path
-        self.imagefolder_class_path = imagefolder_path 
+        # root path remembers, class path mutates
+        self.imagefolder_root_class_path = imagefolder_path 
+        self.imagefolder_class_path = imagefolder_path
         if not os.path.exists(imagefolder_path):
             self.initialisePictures()
 
     def randomisePictureDestinationAddress(self, root_path):
-        image_path = os.path.join(self.imagefolder_class_path, str(uuid.uuid1()) + '.jpg')
+        #image_path = os.path.join(self.imagefolder_class_path, str(uuid.uuid1()) + '.jpg')
+        image_path = os.path.join(root_path, str(uuid.uuid1()) + '.jpg')
         self.picture_path = image_path
 
     def printPaths(self):
         print("Imagefolder root path: " + self.imagefolder_root_path)
-        print("Imagefolder class path: " + self.imagefolder_class_path)
+        print("Imagefolder root class path: " + self.imagefolder_root_class_path)
+        print("Imagefolder class path:" + self.imagefolder_class_path)
 
     def takePictureRandomAddress(self, path):
         self.randomisePictureDestinationAddress(path)
@@ -231,38 +238,36 @@ class PictureTakerWithClass(PictureTaker):
         amount = input('How many pictures you want to take ')
         self.takePicturesWithClass(classname, amount)
 
-    def takeTrainingPicture(self):
-        if not os.path.exists(self.testimagefolder_path):
-            os.makedirs(self.testimagefolder_path)
-        self.displayPicture(True)
-        self.takePictureRandomAddress(self.testimagefolder_path)
 
     def initialisePictures(self):
-        # Training pictures and test pictures are located in separate folders
-        # Training pictures are taken first
-
-        # Makes sure that picture to be predicted has folder to be saved to
+    # Training pictures and test pictures are located in separate folders
+    # Training pictures are taken first
+    # Makes sure that picture to be predicted has folder to be saved to
         if not os.path.exists(self.imagefolder_root_path):
             os.makedirs(self.imagefolder_root_path)
-        print("Path for pictures was not found, if you don't have trained model, you should take pictures")  
-        if input ('Take pictures or continue without? Y/N ') == 'Y':
-            mode_train = True
-        else:
-            return
-        while(mode_train):
-            self.askUserAndTakePicturesWithClass()
-            if input('Continue taking pictures? Y/N ') != 'Y':
-                mode_train = False
-
-        while(not mode_train):
-            print('Taking training pictures... ')
-            self.takeTrainingPicture()
-            if input('Continue taking training pictures? Y/N ') == 'N':
+            print("Path for pictures was not found, if you don't have trained model, you should take pictures")  
+            if input ('Take pictures or continue without? Y/N ') == 'Y':
+                mode_train = True
+            else:
                 return
+            while(mode_train):
+                self.askUserAndTakePicturesWithClass()
+                if input('Continue taking pictures? Y/N ') != 'Y':
+                    mode_train = False
+
+            while(not mode_train):
+                print('Taking testing pictures... ')
+                #self.takeTrainingPicture()
+                classname = input("For which class you want to take testing pictures? ")
+                amount = input("How many testing pictures you want to take? ")
+                self.takeTrainingPicturesWithClass(classname, amount)
+
+                if input('Continue taking training pictures? Y/N ') == 'N':
+                    return
 
     
     def takePicturesWithClass(self, classname, amount):
-        self.imagefolder_class_path = os.path.join(self.imagefolder_class_path, classname)
+        self.imagefolder_class_path = os.path.join(self.imagefolder_root_class_path, classname)
         if not os.path.exists(self.imagefolder_class_path):
             os.makedirs(self.imagefolder_class_path)
         print('\nTaking pictures for class: ' + classname + '\nFolder: ' + self.imagefolder_class_path)
@@ -272,7 +277,48 @@ class PictureTakerWithClass(PictureTaker):
             self.takePictureRandomAddress(self.imagefolder_class_path)
             if i == int(amount) - 1:
                 cv2.destroyAllWindows()
-    
+
+    def printInfoAboutImages(self):
+        # Prints console how many pictures each imagefolder have
+        
+        directories = os.listdir(self.imagefolder_root_class_path)
+        file_counts = []
+        for index, item in enumerate(directories):
+            file_counts.append({'classname': item, 'count': len(os.listdir(os.path.join(self.imagefolder_root_class_path, item)))})
+        
+        training_directories = os.listdir(self.testimagefolder_path)
+        training_file_counts = []
+        for index, item in enumerate(training_directories):
+            training_file_counts.append({'classname': item, 'count': len(os.listdir(os.path.join(self.testimagefolder_path, item)))})
+
+        print("\nClassname Count:\n")
+        for item in file_counts:
+            print(str(item.get('classname')) + " " + str(item.get('count')))
+
+        print("\nTraining class count:\n")
+        for item in training_file_counts:
+            print(str(item.get('classname')) + " " + str(item.get('count')))
+        # Print image counts and are counts even
+        
+    def takeTrainingPicture(self):
+        if not os.path.exists(self.testimagefolder_path):
+            os.makedirs(self.testimagefolder_path)
+        self.displayPicture(True)
+        self.takePictureRandomAddress(self.testimagefolder_path)
+
+    def takeTrainingPicturesWithClass(self, classname, amount):
+            self.imagefolder_class_path = os.path.join(self.testimagefolder_path, classname)
+            if not os.path.exists(self.imagefolder_class_path):
+                os.makedirs(self.imagefolder_class_path)
+            print('\nTaking pictures for class: ' + classname + '\nFolder: ' + self.testimagefolder_path)
+            for i in range(int(amount)):
+                self.displayPicture(False)
+                print("taking picture number " + str(i+1))
+                self.takePictureRandomAddress(self.imagefolder_class_path)
+                if i == int(amount) - 1:
+                    cv2.destroyAllWindows()
+
+
     def movePictures():
         # Maybe images need to be moved
         pass
@@ -284,19 +330,26 @@ class PictureTakerWithClass(PictureTaker):
         continueProgram = True
 
         while(continueProgram):
-            selection = input("\nTRAINING MENU\n1. Take pictures with class \n2. Get current paths\n3. Go back to main menu")
+            selection = input("\nTRAINING MENU\n1. Take pictures with class\n2. Take testing pictures \n3. Get current paths\n4. Print info\n5. Go back to main menu")
             if selection == '1':
                 classname = input("For which class you want to take pictures? ")
                 amount = input("How many pictures you want to take? ")
                 self.takePicturesWithClass(classname, amount)
             elif selection == '2':
-                self.printPaths()
+                classname = input("For which class you want to take testing pictures? ")
+                amount = input("How many testing pictures you want to take? ")
+                self.takeTrainingPicturesWithClass(classname, amount)
             elif selection == '3':
+                self.printPaths()
+            elif selection == '4':
+                self.printInfoAboutImages()
+            elif selection == '5':
                 continueProgram = False
                 return
+
             elif selection == 'train':
                 if input("Retrain model? (requires restart) Y/N") == 'Y':
-                    subprocess.call("trainmodel.py", shell=True)
+                    subprocess.call("python trainmodel.py", shell=True)
                     input("Model was retrained, exit with enter...")
                     exit()
             else:
@@ -309,9 +362,10 @@ class PicturePredicter:
     # Give model_path and class_names path as argument and predict picture against the model...
     # ... By calling predictPicture with image path
 
-    def __init__(self, model_path, classnames_path, picture_path, picture_size=128):
+    def __init__(self, model_path, classnames_path, testpictures_path, picture_path, picture_size=128):
         self.model_path = model_path 
         self.classnames_path = classnames_path 
+        self.testpictures_path = testpictures_path
         self.picture_path = picture_path
         self.picture_size = 128
         if not os.path.exists(self.model_path):
@@ -349,18 +403,52 @@ class PicturePredicter:
         flattened_result = flattened_result.flatten()
         for count, result in enumerate(flattened_result):
             print('Object name = ' + self.classnames[count] + ' Probability = ' + str(round((result*100), 2)))
-
+    
+    def testModel(self):
+        test_image_folders = os.listdir(self.testpictures_path)
+        for folder in test_image_folders:
+            print("\nTesting folder: " + folder)
+            pictures = os.listdir(os.path.join(self.testpictures_path, folder))
+            for count, picture in enumerate(pictures):
+                test_image_path = os.path.join(self.testpictures_path, folder, picture)
+                test_image = image.load_img(test_image_path, (self.picture_size, self.picture_size))
+                test_image = image.img_to_array(test_image)
+                test_image = np.expand_dims(test_image,axis=0)
+                result = self.probability_model.predict(test_image)
+                self.classnames[np.argmax(result)]
+                print(self.classnames[np.argmax(result)] + " " + str(round((np.amax(result)*100), 2)) + " % ---- " + picture)
+         
 class Numpad:
     def waitForUserInput(self):
         return input("Up or down U/D")
 
-class Menu(Numpad):
+class LcdHandler():
+    #Inherits CharLCD, probably needs to be used in own program to avoid collisions with windows system 
+    #def __init__(self):
+    #    CharLCD.__init__(self, pin_rs=15, pin_rw=18, pin_e=16, pins_data=[21,22,23,24],
+    #            numbering_mode=GPIO.board)
+        
+    def printInfo(self, info):
+        print("LCD HANDLER " + info + " LCD HANDLER")
+
+    def writeString(self, string):
+        #self.write_string(string)
+        #sleep(2)
+        #self.clear()
+        print(string)
+
+    def stop(self):
+        self.clear()
+        GPIO.cleanup()
+
+class Menu(Numpad, LcdHandler):
     # Protyping menu system for 16*2 lcd screen with keypad
     # Construct different menus, keep hold of current,
     # return state, move to next, move to previous etc..
     # Inherits Numpad which asks for user input 
     def __init__(self, menuItems):
         self.menuItems = menuItems
+        self.menuItems.append('Exit')
         self.currentState = State(0, menuItems[0])
 
     def printMenuItems(self):
@@ -375,20 +463,21 @@ class Menu(Numpad):
 
     def moveToPreviousState(self):
         if self.currentState.index == 0:
-            return
-        elif self.currentState.index == len(self.menuItems):
             self.currentState.index = len(self.menuItems)-1
             self.currentState.item = self.menuItems[self.currentState.index]
+        #elif self.currentState.index == len(self.menuItems):
+        #    self.currentState.index = len(self.menuItems)-1
+        #    self.currentState.item = self.menuItems[self.currentState.index]
         else:
             self.currentState.index = self.currentState.index - 1
             self.currentState.item = self.menuItems[self.currentState.index]
 
     def moveToNextState(self):
         if self.currentState.index == len(self.menuItems) -1:
-            self.currentState.index +=1 
-            self.currentState.item = 'Exit'
-        elif self.currentState.index == len(self.menuItems):
-            return
+            self.currentState.index = 0 
+            self.currentState.item = self.menuItems[self.currentState.index]
+        #elif self.currentState.index == len(self.menuItems):
+        #    return
         else:
             self.currentState.index = self.currentState.index + 1
             self.currentState.item = self.menuItems[self.currentState.index]
@@ -401,14 +490,32 @@ class Menu(Numpad):
 
     def display(self):
         # This will eventually display row on lcd screeen
+        self.currentState.index = 0
+        self.currentState.item = self.menuItems[self.currentState.index]
         self.printCurrentState()
         selection = self.waitForUserInput()
         while (selection != 'E'):
             self.moveUpOrDown(selection)
             self.printCurrentState()
+            self.printInfo(self.getCurrentState().item)
             selection = self.waitForUserInput()
         print('Leaving menu with index ' + str(self.getCurrentState().index))
         return self.getCurrentState().index 
+
+    def displayLcd(self):
+        self.currentState.index = 0
+        self.currentState.item = self.menuItems[self.currentState.index]
+        self.printCurrentState()
+        selection = self.waitForUserInput()
+        while (selection != 'E'):
+            self.moveUpOrDown(selection)
+            self.printCurrentState()
+            self.printInfo(self.getCurrentState().item)
+            selection = self.waitForUserInput()
+        print('Leaving menu with index ' + str(self.getCurrentState().index))
+        return self.getCurrentState().index 
+
+
 class State:
     def __init__(self, index, menuItem):
         self.index = index

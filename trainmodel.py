@@ -13,7 +13,7 @@ from keras.preprocessing import image
 from keras.models import save_model
 
 # ### Configuration
-batch_size = 5
+batch_size = 10
 img_height = 128
 img_width = 128
 data_dir = os.path.join(os.getcwd(), 'images', 'handsigns')
@@ -40,10 +40,10 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
 
 
 # ### Images for testing the model
-#test_ds = tf.keras.preprocessing.image_dataset_from_directory(
-  #testdata_dir,
-  #image_size=(img_height, img_width),
-  #batch_size=batch_size)
+test_ds = tf.keras.preprocessing.image_dataset_from_directory(
+  testdata_dir,
+  image_size=(img_height, img_width),
+  batch_size=batch_size)
 
 # ### Save classnames to text file using pickle dump
 class_names = train_ds.class_names
@@ -84,9 +84,10 @@ val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 # ### Add augmentation
 data_augmentation = tf.keras.Sequential([
-  #tf.keras.layers.experimental.preprocessing.RandomRotation(0.2),
-  tf.keras.layers.experimental.preprocessing.RandomContrast(factor=[0.2, 0.4]),
+  tf.keras.layers.experimental.preprocessing.RandomRotation(0.2),
+  tf.keras.layers.experimental.preprocessing.RandomContrast(factor=[0.2, 0.5]),
   tf.keras.layers.experimental.preprocessing.RandomFlip(mode="horizontal_and_vertical")
+  #tf.keras.layers.experimental.preprocessing.RandomFlip(mode="horizontal")
 ])
 
 # ### Train the model
@@ -126,18 +127,22 @@ model.fit(
 ### Visualize the testing for images in 'testimages' folder
 
 probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
-individual_pics_test_path = os.path.join(os.getcwd(), 'images', 'testimages')
-pic_list = os.listdir(individual_pics_test_path)
 
-for count, picture in enumerate(pic_list):
-    test_image_path = os.path.join(individual_pics_test_path, picture)
-    test_image = image.load_img(test_image_path, (img_height,img_width))
-    test_image = image.img_to_array(test_image)
-    test_image = np.expand_dims(test_image,axis=0)
-    result = probability_model.predict(test_image)
-    class_names[np.argmax(result)]
-    print(class_names[np.argmax(result)] + " " + str(round((np.amax(result)*100), 2)) + " % ---- " + picture)
-    #training_set.class_indices
+test_images_folder = os.path.join(os.getcwd(), 'images', 'testimages')
+test_image_folders = os.listdir(testdata_dir)
+
+for folder in test_image_folders:
+    print("\nTesting folder: " + folder)
+    pictures = os.listdir(os.path.join(testdata_dir, folder))
+    for count, picture in enumerate(pictures):
+        test_image_path = os.path.join(testdata_dir, folder, picture)
+        test_image = image.load_img(test_image_path, (img_height,img_width))
+        test_image = image.img_to_array(test_image)
+        test_image = np.expand_dims(test_image,axis=0)
+        result = probability_model.predict(test_image)
+        class_names[np.argmax(result)]
+        print(class_names[np.argmax(result)] + " " + str(round((np.amax(result)*100), 2)) + " % ---- " + picture)
+        #training_set.class_indices
 
 # ### Save model
 
