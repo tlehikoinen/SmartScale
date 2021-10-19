@@ -38,7 +38,7 @@ def main():
             helpmenu.display()
         elif selection == '5':
             continueProgram = False
-            #lcd.stop()
+            lcd.stop()
             exit()
         else:
             print("Wront input, try again")
@@ -53,7 +53,7 @@ def pictureMenu(picturetaker, predicter, pricehandler, lcd):
             picturetaker.takePicture()
             guess = predicter.returnPrediction()
             price = pricehandler.returnPrice(guess)
-            lcd.writeString(guess)
+            lcd.writeString(guess + " " +  str(price) + "e")
             print("Product: " + guess + " Price: " + str(price))
         elif selection == '2':
             picturetaker.takePicture()
