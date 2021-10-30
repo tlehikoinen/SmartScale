@@ -1,9 +1,7 @@
 images
-environment
-objdetect
+virtualenv
 saved_model
 .ipynb_checkpoints
-pictureaddresses.csv
 classnames.txt
 pricelist.csv
 __pycache__/

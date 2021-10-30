@@ -1,5 +1,6 @@
 import os
 from modules.smartscale import PicturePredicter, PictureTaker, PictureTakerWithClass, PriceHandler, Menu
+from modules.raspberry import LcdHandler
 
 def main():
     model_path = os.path.join(os.getcwd(),"saved_model","mymodel")
@@ -20,6 +21,7 @@ def main():
         predicter = PicturePredicter(model_path, classnames_path, testimages_folder, testpicture_path)
         pricehandler = PriceHandler(prices_path, predicter.getClassnames())
         helpmenu = Menu(['How to take pictures', 'How to predict pictures', 'How to change prices'])
+        lcd = LcdHandler()
 
     continueProgram = True
 
@@ -29,7 +31,7 @@ def main():
             selection = input("1. Open picture menu\n2. Open price menu\n3. Open picture with class menu\n4. Help\n5. Quit")
             if selection == '1':
                 # Open menu from which you can take, predict or view cameras picture
-                pictureMenu(picturetaker, predicter, pricehandler)
+                pictureMenu(picturetaker, predicter, pricehandler, lcd)
             elif selection == '2':
                 pricehandler.menu()
             elif selection == '3':
@@ -39,6 +41,7 @@ def main():
                 helpmenu.display()
             elif selection == '5':
                 continueProgram = False
+                lcd.stop()
                 exit()
             else:
                 print("Wront input, try again")
@@ -54,7 +57,7 @@ def model_paths_exists(model_path, classnames_path):
         print("yes")
         return True
 
-def pictureMenu(picturetaker, predicter, pricehandler):
+def pictureMenu(picturetaker, predicter, pricehandler, lcd):
     continueProgram = True
 
     while(continueProgram):
@@ -63,6 +66,7 @@ def pictureMenu(picturetaker, predicter, pricehandler):
             picturetaker.takePicture()
             guess = predicter.returnPrediction()
             price = pricehandler.returnPrice(guess)
+            lcd.writeString(guess + " " +  str(price) + "e")
             print("Product: " + guess + " Price: " + str(price))
         elif selection == '2':
             picturetaker.takePicture()

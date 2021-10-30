@@ -9,14 +9,14 @@ import PIL.Image
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import pickle
-from keras.preprocessing import image
-from keras.models import save_model
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.models import save_model
 
 # ### Configuration
 batch_size = 10
 img_height = 128
 img_width = 128
-data_dir = os.path.join(os.getcwd(), 'images', 'handsigns')
+data_dir = os.path.join(os.getcwd(), 'images', 'classpictures')
 testdata_dir = os.path.join(os.getcwd(), 'images', 'testimages')
 class_names = None
 

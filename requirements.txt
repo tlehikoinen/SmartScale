@@ -1,9 +1,0 @@
-opencv-python
-jupyter
-ipykernel
-matplotlib
-numpy == 1.19.0
-pandas
-pillow
-#tensorflow == 2.5
-tensorflow_datasets
