@@ -1,15 +1,16 @@
 import os
 from modules.smartscale import PicturePredicter, PictureTaker, PictureTakerWithClass, PriceHandler, Menu
 from modules.raspberry import LcdHandler
+import modules.cf as cf
 
 def main():
-    model_path = os.path.join(os.getcwd(),"saved_model","mymodel")
-    classnames_path = os.path.join(os.getcwd(),"classnames.txt")
-    testpicture_path = os.path.join(os.getcwd(),"images", "predictpicture.jpg")
-    images_folder = os.path.join(os.getcwd(), "images", "classpictures")
-    root_image_path = os.path.join(os.getcwd(), "images")
-    testimages_folder = os.path.join(os.getcwd(), "images", "testimages")
-    prices_path = os.path.join(os.getcwd(), "pricelist.csv")
+    model_path = cf.model_path
+    classnames_path = cf.classnames_path
+    testpicture_path = cf.testpicture_path 
+    images_folder = cf.images_folder 
+    root_image_path = cf.root_image_path
+    testimages_folder = cf.testimages_folder
+    prices_path = cf.prices_path 
 
     # If model doesn't exists, user can only access menu from which pictures can be taken with classnames
     modelExists = model_paths_exists(model_path, classnames_path)

@@ -1,5 +1,6 @@
 from RPLCD.gpio import CharLCD
 import RPi.GPIO as GPIO
+from time import sleep
 
 class LcdHandler(CharLCD):
     def __init__(self):

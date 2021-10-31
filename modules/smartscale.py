@@ -11,6 +11,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow import keras
 import subprocess
 from time import sleep
+import modules.config as cf
 
 class PriceHandler: 
     # We need prices for our predicted products, so this class can be used for generating csv file...
@@ -120,10 +121,10 @@ class PictureTaker:
     # Path is same for all so overwriting is inevitable, unless uuid() or so is added
 
     # Add imagefolder_path and ?
-    def __init__(self, picture_path, cv2_cam=0, picture_size=128):
+    def __init__(self, picture_path):
         self.picture_path = picture_path
-        self.picture_size = picture_size
-        self.cv2_cam = cv2_cam
+        self.picture_size = cf.picture_size
+        self.cv2_cam = cf.cv2_cam
         #self.cap = cv2.VideoCapture(cv2_cam, cv2.CAP_DSHOW)
         #self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         #self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 280)
@@ -133,13 +134,50 @@ class PictureTaker:
             self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
         else:
             self.cap = cv2.VideoCapture(self.cv2_cam)
-           
+
         print(self.picture_path)
         ret, frame = self.cap.read() 
         frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
         cv2.imwrite(self.picture_path, frame)
         self.cap.release() 
 
+# This is probably better way for taking pictures so cap.read isn't empty
+#        pictureTaken = False
+#        while(not pictureTaken):
+#            ret, frame = self.cap.read()
+#            if ret == True:
+#                print(self.picture_path)
+#                ret, frame = self.cap.read() 
+#                frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
+#                cv2.imwrite(self.picture_path, frame)
+#                self.cap.release() 
+#                pictureTaken = True
+
+    def displayAndTakePicture(self, destroy=True): 
+        # Displays videoimage and takes picture on ESC press (enter for rasp)
+        print("\nDisplaying camera, press ESC on cmd to close")
+        if os.name == "nt":
+            self.cap = cv2.VideoCapture(self.cv2_cam, cv2.CAP_DSHOW) 
+        else:
+            self.cap = cv2.VideoCapture(self.cv2_cam)
+        while(self.cap.isOpened()): 
+            ret, frame = self.cap.read() 
+            if ret == True: 
+                cv2.imshow('frame', frame) 
+                if self.checkForKeyPress():
+                    frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
+                    cv2.imwrite(self.picture_path, frame)
+                    break
+                cv2.waitKey(25) 
+            else: 
+                break 
+                #ret, frame = self.cap.read() 
+        
+        self.cap.release()
+        if destroy == True:
+            cv2.destroyAllWindows()
+
+ 
     def displayPicture(self, destroy=True): 
         # Displays videoimega until ESC is pressed 
         print("\nDisplaying camera, press ESC on cmd to close")
@@ -152,10 +190,6 @@ class PictureTaker:
             if ret == True: 
                 cv2.imshow('frame', frame) 
                 if self.checkForKeyPress():
-                #if os.name == "nt":
-                #    if self.checkForKeyPress() == True:
-                #            break 
-                #elif self.heardEnter():
                     break
                 cv2.waitKey(25) 
             else: 
@@ -175,9 +209,8 @@ class PictureTaker:
                 return True
         return False
 
-
-
     def checkForKeyPress(self):
+        # Returns true if esc (win) or enter (rasp) is pressed
         if os.name == 'nt':
             import msvcrt
             if msvcrt.kbhit():
@@ -235,13 +268,13 @@ class PictureTakerWithClass(PictureTaker):
 
     def takePictureRandomAddress(self, path):
         self.randomisePictureDestinationAddress(path)
-        self.takePicture()
+        self.displayAndTakePicture()
+        #self.takePicture()
             
     def askUserAndTakePicturesWithClass(self):
         classname = input('For which class you want to take pictures ')
         amount = input('How many pictures you want to take ')
         self.takePicturesWithClass(classname, amount)
-
 
     def initialisePictures(self):
     # Training pictures and test pictures are located in separate folders
@@ -276,7 +309,7 @@ class PictureTakerWithClass(PictureTaker):
             os.makedirs(self.imagefolder_class_path)
         print('\nTaking pictures for class: ' + classname + '\nFolder: ' + self.imagefolder_class_path)
         for i in range(int(amount)):
-            self.displayPicture(False)
+            #self.displayPicture(False)
             print("taking picture number " + str(i+1))
             self.takePictureRandomAddress(self.imagefolder_class_path)
             if i == int(amount) - 1:
@@ -284,13 +317,21 @@ class PictureTakerWithClass(PictureTaker):
 
     def printInfoAboutImages(self):
         # Prints console how many pictures each imagefolder have
-        
-        directories = os.listdir(self.imagefolder_root_class_path)
+        try:
+            directories = os.listdir(self.imagefolder_root_class_path)
+        except:
+            print("Classpictures weren't found")
+            return
         file_counts = []
         for index, item in enumerate(directories):
             file_counts.append({'classname': item, 'count': len(os.listdir(os.path.join(self.imagefolder_root_class_path, item)))})
         
-        training_directories = os.listdir(self.testimagefolder_path)
+        try:
+            training_directories = os.listdir(self.testimagefolder_path)
+        except:
+            print("Testing pictures weren't found")
+            return
+
         training_file_counts = []
         for index, item in enumerate(training_directories):
             training_file_counts.append({'classname': item, 'count': len(os.listdir(os.path.join(self.testimagefolder_path, item)))})
@@ -316,7 +357,7 @@ class PictureTakerWithClass(PictureTaker):
                 os.makedirs(self.imagefolder_class_path)
             print('\nTaking pictures for class: ' + classname + '\nFolder: ' + self.testimagefolder_path)
             for i in range(int(amount)):
-                self.displayPicture(False)
+                #self.displayPicture(False)
                 print("taking picture number " + str(i+1))
                 self.takePictureRandomAddress(self.imagefolder_class_path)
                 if i == int(amount) - 1:

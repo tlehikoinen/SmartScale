@@ -11,13 +11,17 @@ import tensorflow_datasets as tfds
 import pickle
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.models import save_model
+import modules.config as cf
+
+print(cf.images_folder)
+print(cf.testimages_folder)
 
 # ### Configuration
-batch_size = 10
-img_height = 128
-img_width = 128
-data_dir = os.path.join(os.getcwd(), 'images', 'classpictures')
-testdata_dir = os.path.join(os.getcwd(), 'images', 'testimages')
+batch_size = 5
+img_height = cf.picture_size
+img_width = cf.picture_size
+data_dir = cf.images_folder
+testdata_dir = cf.testimages_folder
 class_names = None
 
 # ### Images for training the model
@@ -45,18 +49,8 @@ test_ds = tf.keras.preprocessing.image_dataset_from_directory(
   image_size=(img_height, img_width),
   batch_size=batch_size)
 
-# ### Save classnames to text file using pickle dump
+# ### Get classnames
 class_names = train_ds.class_names
-print(class_names)
-print(len(class_names))
-f = open("classnames.txt", "wb")
-f.write(pickle.dumps(class_names))
-f.close()
-
-# ### Read saved class names by using pickle
-
-classnames = pickle.loads(open('classnames.txt', "rb").read())
-print(classnames)
 
 # ### Print info about tensors shape
 
@@ -119,16 +113,15 @@ model.fit(
   epochs=10
 )
 
-
 # ### Test model accuracy with test pictures
 
-#model.evaluate(test_ds)
+model.evaluate(test_ds)
 
 ### Visualize the testing for images in 'testimages' folder
 
 probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
 
-test_images_folder = os.path.join(os.getcwd(), 'images', 'testimages')
+#test_images_folder = os.path.join(os.getcwd(), 'images', 'testimages')
 test_image_folders = os.listdir(testdata_dir)
 
 for folder in test_image_folders:
@@ -149,5 +142,18 @@ for folder in test_image_folders:
 #tf.keras.models.save_model(
  # model, 'saved_model/mymodel')
  
-model.save('saved_model/mymodel')
+model.save(cf.model_path)
+
+# ### Save class names to file using pickle dump
+print(class_names)
+print(len(class_names))
+f = open(cf.classnames_path, "wb")
+f.write(pickle.dumps(class_names))
+f.close()
+
+# ### Read saved class names by using pickle
+
+#classnames = pickle.loads(open(cf.classnames_path, "rb").read())
+#print(classnames)
+
 
