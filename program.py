@@ -1,5 +1,6 @@
 import os
-from modules.smartscale import PicturePredicter, PictureTaker, PictureTakerWithClass, PriceHandler, Menu
+from modules.smartscale import PictureTaker, PictureTakerWithClass, PriceHandler, Menu
+from modules.predicter import PicturePredicter
 import modules.config as cf
 
 def main():

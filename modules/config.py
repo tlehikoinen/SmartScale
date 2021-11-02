@@ -3,8 +3,10 @@ import os
 
 # Multiple models can be saved
 model_name = "boxes"
+litemodel_name = model_name + "_lite"
 
 model_path = os.path.join(os.getcwd(), "saved_model", model_name)
+lite_model_path = os.path.join(os.getcwd(), "saved_model", model_name, litemodel_name)
 classnames_path = os.path.join(os.getcwd(), "saved_model", model_name, "classnames.txt")
 testpicture_path = os.path.join(os.getcwd(), "images", "predictpicture.jpg")
 images_folder = os.path.join(os.getcwd(), "images", "classpictures", model_name)

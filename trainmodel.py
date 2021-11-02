@@ -24,6 +24,7 @@ data_dir = cf.images_folder
 testdata_dir = cf.testimages_folder
 class_names = None
 
+
 # ### Images for training the model
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
   data_dir,
@@ -88,7 +89,7 @@ data_augmentation = tf.keras.Sequential([
 
 num_classes = len(class_names)
 
-model = tf.keras.Sequential([
+tfmodel = tf.keras.Sequential([
   data_augmentation,
   tf.keras.layers.experimental.preprocessing.Rescaling(1./255),
   tf.keras.layers.Conv2D(32, 3, activation='relu'),
@@ -102,12 +103,12 @@ model = tf.keras.Sequential([
   tf.keras.layers.Dense(num_classes)
 ])
 
-model.compile(
+tfmodel.compile(
   optimizer='adam',
   loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
   metrics=['accuracy'])
 
-model.fit(
+tfmodel.fit(
   train_ds,
   validation_data=val_ds,
   epochs=10
@@ -115,11 +116,11 @@ model.fit(
 
 # ### Test model accuracy with test pictures
 
-model.evaluate(test_ds)
+tfmodel.evaluate(test_ds)
 
 ### Visualize the testing for images in 'testimages' folder
 
-probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
+probability_model = tf.keras.Sequential([tfmodel, tf.keras.layers.Softmax()])
 
 #test_images_folder = os.path.join(os.getcwd(), 'images', 'testimages')
 test_image_folders = os.listdir(testdata_dir)
@@ -142,7 +143,7 @@ for folder in test_image_folders:
 #tf.keras.models.save_model(
  # model, 'saved_model/mymodel')
  
-model.save(cf.model_path)
+tfmodel.save(cf.model_path)
 
 # ### Save class names to file using pickle dump
 print(class_names)
@@ -156,4 +157,10 @@ f.close()
 #classnames = pickle.loads(open(cf.classnames_path, "rb").read())
 #print(classnames)
 
+# Convert the model
 
+#tflite_model_path = os.path.join(os.getcwd(), "saved_model", "tflitemodel")
+tf_lite_converter = tf.lite.TFLiteConverter.from_keras_model(tfmodel)
+tflite_model = tf_lite_converter.convert()
+
+open(cf.lite_model_path, "wb").write(tflite_model)

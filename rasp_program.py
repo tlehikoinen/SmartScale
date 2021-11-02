@@ -1,7 +1,8 @@
 import os
-from modules.smartscale import PicturePredicter, PictureTaker, PictureTakerWithClass, PriceHandler, Menu
+from modules.smartscale import PictureTaker, PictureTakerWithClass, PriceHandler, Menu
+from modules.predicter import PicturePredicter
 from modules.raspberry import LcdHandler
-import modules.cf as cf
+import modules.config as cf
 
 def main():
     model_path = cf.model_path
