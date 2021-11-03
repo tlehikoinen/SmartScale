@@ -1,5 +1,6 @@
 images
 virtualenv
+litevirtualenv
 saved_model
 .ipynb_checkpoints
 classnames.txt
