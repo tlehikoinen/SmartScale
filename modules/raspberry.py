@@ -22,7 +22,7 @@ class LcdHandler(CharLCD):
 
     def stop(self):
         self.clear()
-        #self.close(clear=True)
+        self.close(clear=True)
         GPIO.cleanup()
  
 

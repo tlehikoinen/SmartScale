@@ -14,22 +14,24 @@ class PicturePredicterLite:
         self.interpreter.allocate_tensors()
         self.picture_size = 128
         self.classnames = pickle.loads(open(classnames_path, "rb").read())
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
     
     def getClassnames(self):
         return self.classnames
 
     def returnPrediction(self):
-        input_details = self.interpreter.get_input_details()
-        output_details = self.interpreter.get_output_details()
+        #input_details = self.interpreter.get_input_details()
+        #output_details = self.interpreter.get_output_details()
         image = Image.open(self.picture_path)
         image = asarray(image)
 
         image = image.astype(np.float32)
         image = np.expand_dims(image, axis=0)
     
-        self.interpreter.set_tensor(input_details[0]['index'], image)
+        self.interpreter.set_tensor(self.input_details[0]['index'], image)
         self.interpreter.invoke()
-        output_data = self.interpreter.get_tensor(output_details[0]['index'])
+        output_data = self.interpreter.get_tensor(self.output_details[0]['index'])
         
         print("______________")
         class_number = np.argmax(output_data)

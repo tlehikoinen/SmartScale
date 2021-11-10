@@ -496,3 +496,34 @@ class State:
         self.index = index
         self.item = menuItem
 
+class Datasaver:
+    def __init__(self, path, header=['Date', 'Product','Weight','PricePerKilo','TotalPrice']):
+        self.path=path
+        self.header=header
+        self.checkForExisting()
+ 
+    def checkForExisting(self):
+        if not os.path.isfile(self.path):
+            with open (self.path, 'w', newline='') as csvfile:
+                pricewriter = csv.writer(csvfile, delimiter=',')
+                pricewriter.writerow(self.header)
+        else:
+            print("file exists")
+            #pass
+ 
+    def saveData(self,product,priceperkilo,weight):
+        from datetime import date
+        today = date.today()
+        weightInKg = weight/1000
+        totalprice = round(priceperkilo * weightInKg, 2)
+        #print('The TotalPrice is: ',totalprice)
+        #print("Today's date is :", today)
+
+        arrayOfItems=[str(today), str(product), str(weightInKg), str(priceperkilo), str(totalprice)]
+        with open(self.path, 'a', newline='') as f:
+          writer = csv.writer(f, delimiter=',')
+          writer.writerow(arrayOfItems)
+ 
+ 
+if __name__ == "__main__":
+    main()
