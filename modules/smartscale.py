@@ -132,23 +132,16 @@ class PictureTaker:
         else:
             self.cap = cv2.VideoCapture(self.cv2_cam)
 
-        print(self.picture_path)
-        ret, frame = self.cap.read() 
-        frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
-        cv2.imwrite(self.picture_path, frame)
-        self.cap.release() 
-
-# This is probably better way for taking pictures so cap.read isn't empty
-#        pictureTaken = False
-#        while(not pictureTaken):
-#            ret, frame = self.cap.read()
-#            if ret == True:
-#                print(self.picture_path)
-#                ret, frame = self.cap.read() 
-#                frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA) 
-#                cv2.imwrite(self.picture_path, frame)
-#                self.cap.release() 
-#                pictureTaken = True
+        pictureTaken = False
+        counter = 0
+        while(not pictureTaken):
+            ret, frame = self.cap.read()
+            counter+=1
+            if counter == 10:
+                frame = self.crop_square(frame, self.picture_size, cv2.INTER_AREA)
+                cv2.imwrite(self.picture_path, frame)
+                self.cap.release()
+                pictureTaken = True
 
     def displayAndTakePicture(self, destroy=True): 
         # Displays videoimage and takes picture on ESC press (enter for rasp)

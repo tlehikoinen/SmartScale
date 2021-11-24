@@ -17,7 +17,7 @@ saved_data_path = os.path.join(os.getcwd(), "saved_model", model_name, "saved_da
 
 picture_size = 128
 cv2_cam = 0
-
+scale_ref_unit = 1010
 
 
 

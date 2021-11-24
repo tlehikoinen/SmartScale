@@ -20,12 +20,14 @@ def main():
     modelExists = model_paths_exists(model_path, classnames_path)
     picturetaker = PictureTaker(testpicture_path)
     hx = HX711(29, 31)
+    reference_unit = cf.scale_ref_unit
 
     if modelExists:
         predicter = PicturePredicterLite(model_path, classnames_path, testpicture_path)
         pricehandler = PriceHandler(prices_path, predicter.getClassnames())
         lcd = LcdHandler()
-        hx_init(hx,lcd, 1010)
+        #hx_init(hx,lcd, 1010)
+        hx_init(hx,lcd,reference_unit)
         datasaver = Datasaver(saved_data_path)
     else:
         print("Model was not found")
@@ -34,7 +36,7 @@ def main():
     continueProgram = True
 
     while(continueProgram):
-        selection = input("\nPICTURE MENU\n1. Take picture and print data\n2. Run the scale program\n3. Display camera\n4. Open price menu\n5. Exit")
+        selection = input("\nPICTURE MENU\n1. Take picture and print data\n2. Run the scale program\n3. Display camera\n4. Open price menu\n5. Display scale readings\n6. Exit")
         if selection == '1':
             doFullPrediction(picturetaker, predicter,lcd, pricehandler, hx)
         if selection == '2':
@@ -44,6 +46,8 @@ def main():
         elif selection == '4':
             pricehandler.menu()
         elif selection == '5':
+            displayScaleReadings(hx, lcd, picturetaker)
+        elif selection == '6':
             # Returning so user is not asked to press key to continue
             continueProgram = False
             lcd.stop()
@@ -74,7 +78,7 @@ def scaleProgram(picturetaker, predicter, lcd, pricehandler, hx, datasaver):
     print("Read values")
     while(True):
         if writeCount == 0:
-            lcd.write_string("Place item")
+            lcd.write_string("Place a product")
             writeCount+=1
 
         print("***** Waiting for item on scale*****")
@@ -105,6 +109,16 @@ def checkForFinalWeight(picturetaker, predicter, lcd, pricehandler, hx, value, d
             return
         else:
             prev_val = new_val
+
+def displayScaleReadings(hx, lcd, picturetaker):
+    while(True):
+        value = hx_readvalue(hx)
+        lcd.clear()
+        lcd.write_string(str(value) + "g")
+        sleep(1)
+        if picturetaker.checkForKeyPress():
+            lcd.clear()
+            return
 
 def waitForEmptyScale(hx):
     print("***** WAITING FOR EMPTY SCALE *****")
