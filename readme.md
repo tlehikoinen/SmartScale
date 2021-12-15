@@ -1,5 +1,15 @@
 # Smart Scale
-On going project about Smart Scale that automatically predicts the item being weighed.  
+Scale that automatically predicts the item being weighted.  
+`<demo>` : <https://youtu.be/KrtS9QwIHMU>
+
+### Features
+- Take pictures of items
+- Train a classification model with these pictures
+- Change prices for the items
+- Scale program that displays items name, weight and the price on the LCD screen after an item is placed on the scale
+
+
+<img src="https://user-images.githubusercontent.com/78909617/146200725-e2bdf5dd-3706-40b6-9ea0-fb00b8567dac.jpg" width="650">
 Python version 3.7.3  
 
 ## Setup Instructions
@@ -58,8 +68,8 @@ Load cell and camera are connected to metal body.
 ## Software Setup
 
 With Git installed clone the software from GitHub with following command:  
-*git clone git@github.com:/yellowpasta/infoproject*  
-New directory "infoproject" is made with contents of this repository.  
+*git clone git@github.com:/yellowpasta/SmartScale*  
+New directory "SmartScale" is made with contents of this repository.  
 
 ### Installing requirements:
 **Windows**  
@@ -123,6 +133,20 @@ In this chapter the most common questions and error situations are covered. In c
 Tommi Lehikoinen - Project Leader, Software Developer  
 Robert Hidri - Hardware Engineer  
 Guyangyang Yao - Data Analyst  
+
+## References
+Thanks to many open source libraries we were able to build the scale:  
+tatobari: https://github.com/tatobari/hx711py  
+lhelontra: https://github.com/lhelontra/tensorflow-on-arm  
+OpenCV: https://opencv.org/  
+NumPy: https://numpy.org/  
+pandas: https://pandas.pydata.org/  
+Pillow: https://pillow.readthedocs.io/en/stable/  
+Tensorflow: https://www.tensorflow.org/  
+h5py: https://www.h5py.org/  
+RPLCD: https://rplcd.readthedocs.io/en/stable/  
+RPi.GPIO: https://pypi.org/project/RPi.GPIO/  
+pybind11: https://github.com/pybind/pybind11  
 
 
 
